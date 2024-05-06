@@ -10,6 +10,8 @@ public class Cat : MonoBehaviour
     private SpriteRenderer SpriteRenderer;
     private BoxCollider2D boxCollider;
 
+    Vector3 prev;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,6 +20,7 @@ public class Cat : MonoBehaviour
         boxCollider = rb.GetComponent<BoxCollider2D>();
         controllCat.enabled = true;
         controllCat.catAnimator.SetBool("Start", true);
+        prev = controllCat.catParent.transform.position; 
     }
 
     // Update is called once per frame
@@ -35,6 +38,12 @@ public class Cat : MonoBehaviour
         if (SceneChanger.menu)
             controllCat.catAnimator.SetBool("Start", false);
 
+        if (prev != controllCat.catParent.transform.position)
+        {
+            prev = controllCat.catParent.transform.position;
+            //Debug.Log(prev);
+        }
+
     }
 
     void MoveDown()
@@ -51,5 +60,20 @@ public class Cat : MonoBehaviour
     void JumpRight()
     {
         controllCat.MoveParentRight();
+    }
+    
+    void Fall()
+    {
+        controllCat.Fall();
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        controllCat.CollisionTrigger(collision);
+    }
+
+    void resetFall()
+    {
+        controllCat.catAnimator.SetBool("Fall", false);
     }
 }

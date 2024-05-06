@@ -5,11 +5,19 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public delegate void PauseAnimation();
+public delegate void StopAnimation();
+public delegate void Restart();
+
 public class SceneChanger : MonoBehaviour
 {
     public static bool menu = true;
     public static float sink_height;
     public float Sink_Height;
+
+    public static event PauseAnimation pa;
+    public static event StopAnimation sa;
+    public static event Restart restart;
 
     private void Start()
     {
@@ -37,11 +45,17 @@ public class SceneChanger : MonoBehaviour
 
     public void Pause()
     {
+        pa?.Invoke();
+    }
 
+    public static void Stop()
+    {
+        sa?.Invoke();
     }
 
     public void NewGame()
     {
         ChangeScene("GameScene");
+        restart?.Invoke();
     }
 }

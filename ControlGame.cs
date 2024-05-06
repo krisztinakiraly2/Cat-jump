@@ -6,11 +6,39 @@ public class ControlGame : MonoBehaviour
 {
     public GameObject GameParent;
     public Animator GameAnimator;
-    
+    bool isAnimationStopped = false;
+
+    private void PauseAnimation()
+    {
+        if (GameAnimator != null)
+        {
+            isAnimationStopped = !isAnimationStopped;
+            GameAnimator.enabled = !GameAnimator.enabled;
+        }
+    }
+
+    private void StopAnimation()
+    {
+        SceneChanger.pa -= PauseAnimation;
+        if (GameAnimator != null)
+        {
+            isAnimationStopped = true;
+            GameAnimator.enabled = false;
+        }
+    }
+
+    private void restart()
+    {
+        SceneChanger.pa += PauseAnimation;
+        SceneChanger.sa += StopAnimation;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         GameAnimator.SetBool("Start", true);
+        SceneChanger.restart += restart;
+        restart();
     }
 
     // Update is called once per frame
@@ -22,10 +50,13 @@ public class ControlGame : MonoBehaviour
 
     public void MoveParentDown()
     {
-        float X = GameParent.transform.position.x;
-        float Y = GameParent.transform.position.y;
-        GameParent.transform.position = new Vector3(GameParent.transform.position.x, GameParent.transform.position.y - SceneChanger.sink_height, 0);
-        //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {GameParent.transform.position.x},y: {GameParent.transform.position.y}, Z: {GameParent.transform.position.z}");
+        if(!isAnimationStopped)
+        {
+            float X = GameParent.transform.position.x;
+            float Y = GameParent.transform.position.y;
+            GameParent.transform.position = new Vector3(GameParent.transform.position.x, GameParent.transform.position.y - SceneChanger.sink_height, 0);
+            //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {GameParent.transform.position.x},y: {GameParent.transform.position.y}, Z: {GameParent.transform.position.z}");
+        }
     }
 
 }
