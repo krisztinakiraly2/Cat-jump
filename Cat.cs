@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Cat : MonoBehaviour
 {
     private Rigidbody2D rb;
-    public int jump = 130;
     public ControllCat controllCat;
     private SpriteRenderer SpriteRenderer;
     private BoxCollider2D boxCollider;
@@ -30,17 +30,26 @@ public class Cat : MonoBehaviour
             controllCat.Jump(false);
             else
                 if (!SceneChanger.menu)
-                    MoveDown();
+                    controllCat.MoveDown();
 
-        if(SceneChanger.menu)
+        if (SceneChanger.menu)
             controllCat.catAnimator.SetBool("Start", false);
 
     }
 
     void MoveDown()
     {
-        float y = Input.GetAxis("Vertical");
-        rb.velocity = new Vector2(rb.velocityX, y);
-        controllCat.MoveDown();
+        if (!SceneChanger.menu)
+            controllCat.MoveParentDown();
+    }
+
+    void JumpLeft()
+    {
+        controllCat.MoveParentLeft();
+    }
+
+    void JumpRight()
+    {
+        controllCat.MoveParentRight();
     }
 }

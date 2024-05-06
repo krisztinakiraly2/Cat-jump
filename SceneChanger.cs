@@ -8,6 +8,13 @@ using UnityEngine.SceneManagement;
 public class SceneChanger : MonoBehaviour
 {
     public static bool menu = true;
+    public static float sink_height;
+    public float Sink_Height;
+
+    private void Start()
+    {
+        sink_height = Sink_Height;
+    }
 
     public void ChangeScene(string sceneName)
     {
