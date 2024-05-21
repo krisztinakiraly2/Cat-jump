@@ -30,7 +30,6 @@ public class Game : MonoBehaviour
     float extraBedsStartingXCoord = 2520;
     float extraCloudsStartingXCoord = 2230;
     float extraItemsStartingYCoord = 920;
-    bool firstIteration = true;
 
     void Start()
     {
@@ -56,7 +55,8 @@ public class Game : MonoBehaviour
                 else
                 {
                     if (cloud == randomizer.Next(cloud, bed+1))
-                        playfield[i][j] = createCloud(v,true);
+                        playfield[i][j] = createBed(v, true);
+                        //playfield[i][j] = createCloud(v,true);
                     else
                         playfield[i][j] = createBed(v, true);
                 }
@@ -130,7 +130,7 @@ public class Game : MonoBehaviour
         // Todo: figure out why is this working properly
         if(Height == 10 && !isNewRowCreated)
         {
-            newPlayingField();
+            refreshPlayingField();
 
             currendMaxHeigth += ControllCat.Jump_Height;
 
@@ -140,7 +140,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    void newPlayingField()
+    void refreshPlayingField()
     {
         int length = (playfield[0].Length == 4) ? 3 : 4;
         float startingXCoord = (length==4) ? fourItemRowStartingXCoord : threeItemRowStartingXCoord;
@@ -149,9 +149,10 @@ public class Game : MonoBehaviour
         bool[] row5takens = new bool[playfield[4].Length];
         for (int i = 0; i < length; i++)
         {
-            array[i] = randomizer.Next(0,2);
+            array[i] = bed;
+            //array[i] = randomizer.Next(0,2);
         }
-        
+
         playfield[5] = playfield[4];
         playfield[4] = playfield[3];
         playfield[3] = playfield[2];
@@ -292,5 +293,21 @@ public class Game : MonoBehaviour
     void Move()
     {
         ControlGame.MoveParentDown();
+    }
+
+    public float getLeftColoumnPos(bool isLeft)
+    {
+        float l = (playfield[0].Length == 4) ? 4 : 3;
+        float X = (l == 3) ? threeItemRowStartingXCoord : fourItemRowStartingXCoord;
+
+        //Debug.LogWarning(l);
+
+        // Todo: Jumping from the right doesnt land at the perfect place
+        if (isLeft)
+            X += 72;
+        else
+            X += coloumnDistance * (l - 1) + shift_const + 3;
+
+        return X;
     }
 }

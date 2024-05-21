@@ -688,9 +688,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   catAnimator: {fileID: 1989521087}
   catParent: {fileID: 14137697}
+  game: {fileID: 646521996}
   jump_height: 250
   jump_lenght: 250
   jump_height_shift: 5
+  rightBorder: 190
+  leftBorder: -1720
 --- !u!1 &210957531
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,12 +7,15 @@ public class ControllCat : MonoBehaviour
 {
     public Animator catAnimator;
     public GameObject catParent;
+    public Game game;
     public float jump_height;
     public float jump_lenght;
     public static float Jump_Height;
     public float jump_height_shift;
     bool isAnimationStopped = false;
     bool hasNotCollided = true;
+    float rightBorder = 1800;
+    float leftBorder = 0;
 
     private void PauseAnimation()
     {
@@ -75,7 +78,23 @@ public class ControllCat : MonoBehaviour
         {
             float X = catParent.transform.position.x;
             float Y = catParent.transform.position.y;
-            catParent.transform.position = new Vector3(catParent.transform.position.x - jump_lenght, catParent.transform.position.y + jump_height - jump_height_shift, 0);
+
+            float newX;
+            float newY;
+
+            //Debug.LogWarning($"After: {X + jump_lenght} border: {leftBorder}");
+
+            if (X - jump_lenght > leftBorder)
+            {
+                newX = X - jump_lenght;
+            }
+            else
+            {
+                newX = game.getLeftColoumnPos(false);
+            }
+
+            newY = Y + jump_height - jump_height_shift;
+            catParent.transform.position = new Vector3(newX, newY, 0);
             //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {catParent.transform.position.x},y: {catParent.transform.position.y}, Z: {catParent.transform.position.z}");
             DrawPoints.increasePoints();
         }
@@ -87,7 +106,23 @@ public class ControllCat : MonoBehaviour
         {
             float X = catParent.transform.position.x;
             float Y = catParent.transform.position.y;
-            catParent.transform.position = new Vector3(catParent.transform.position.x + jump_lenght, catParent.transform.position.y + jump_height - jump_height_shift, 0);
+
+            float newX;
+            float newY;
+
+            //Debug.LogWarning($"After: {X + jump_lenght} border: {rightBorder}");
+
+            if (X + jump_lenght < rightBorder)
+            {
+                newX = X + jump_lenght;
+            }
+            else
+            {
+                newX = game.getLeftColoumnPos(true);
+            }
+
+            newY = Y + jump_height - jump_height_shift;
+            catParent.transform.position = new Vector3(newX, newY, 0);
             //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {catParent.transform.position.x},y: {catParent.transform.position.y}, Z: {catParent.transform.position.z}");
             DrawPoints.increasePoints();
         }
