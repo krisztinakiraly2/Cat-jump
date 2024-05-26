@@ -2,8 +2,6 @@ using NUnit.Framework.Internal;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using Unity.VisualScripting;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
 
 public class Game : MonoBehaviour
@@ -12,13 +10,13 @@ public class Game : MonoBehaviour
     public GameObject[][] playfield;
     public ArrayList clouds;
     public ArrayList beds;
-    Randomizer randomizer;
     public static float Height;
+    bool repeatBeds = false;
+    bool repeatClouds = false;
 
     float shift_const = 108;
     float height_const = 250;
     float currendMaxHeigth = 1100;
-    bool isNewRowCreated = false;
     float threeItemRowStartingXCoord = 200;
     float fourItemRowStartingXCoord = -50;
     float coloumnDistance = 500;
@@ -41,7 +39,6 @@ public class Game : MonoBehaviour
         playfield[3] = new GameObject[4];
         playfield[4] = new GameObject[3];
 
-        randomizer = new Randomizer();
         Vector3 v = new Vector3(threeItemRowStartingXCoord + shift_const, currendMaxHeigth, 0);
 
         for (int i = 0; i < playfieldLength-1; ++i)
@@ -50,13 +47,12 @@ public class Game : MonoBehaviour
             {
                 playfield[i][j] = new GameObject();
 
-                if (i == (playfield.Length-2) && j == 1)
+                if ((i == (playfield.Length-2) && j == 1) || (i==0 &&  j==2) || (i==1 && j==2) || (i==2 && j==1) || (i==3 && j==1))
                     playfield[i][j] = createBed(v,true);
                 else
                 {
-                    if (cloud == randomizer.Next(cloud, bed+1))
-                        playfield[i][j] = createBed(v, true);
-                        //playfield[i][j] = createCloud(v,true);
+                    if (cloud == Random.Range(cloud, bed+1))
+                        playfield[i][j] = createCloud(v,true);
                     else
                         playfield[i][j] = createBed(v, true);
                 }
@@ -121,22 +117,188 @@ public class Game : MonoBehaviour
 
     void Update()
     {
-        if (Height == 0)
+        MovePlayingField();
+    }
+
+    void MovePlayingField()
+    {
+        if (ControllCat.MoveFieldDown)
         {
-            Height = height_const;
-            isNewRowCreated = false;
+            foreach (var row in playfield)
+            {
+                if (row != null && row.Length > 0)
+                {
+                    foreach (var item in row)
+                    {
+                        if (item != null)
+                        {
+                            item.transform.position = new Vector3(item.transform.position.x, item.transform.position.y - ControllCat.Jump_Height+10, item.transform.position.z);
+                        }
+                    }
+                }
+            }
+
+            ControllCat.MoveFieldDown = false;
+            refreshPlayingField();
+        }
+    }
+
+    void randomizePatterns(int[] array, int length)
+    {
+        if(playfield[0][0].name=="Bed" && array[0]==bed && array[2]==bed)
+        {
+            if(repeatBeds)
+            {
+                array[0]=cloud; array[2]=cloud;
+                array[1]=bed;
+
+                if(array.Length>3)
+                    array[3]=bed;
+
+                repeatBeds = false;
+            }
+            else
+                repeatBeds = true;
         }
 
-        // Todo: figure out why is this working properly
-        if(Height == 10 && !isNewRowCreated)
+        if(playfield[0][0].name=="Cloud" && array[0]==cloud && array[2]==bed)
         {
-            refreshPlayingField();
+            if(repeatClouds)
+            {
+                array[0]=bed; array[2]=bed;
+                array[1]=cloud;
 
-            currendMaxHeigth += ControllCat.Jump_Height;
+                if(array.Length>3)
+                    array[3]=cloud;
 
-            isNewRowCreated = true;
+                repeatClouds = false;
+            }
+            else
+                repeatClouds = true;
+        }
 
-            currendMaxHeigth -= ControllCat.Jump_Height;
+        int bedCount = 0;
+        for (int i = 0; i < length; i++)
+        {
+            if (array[i] == bed)
+            {
+                ++bedCount;
+            }
+            else
+                array[i] = cloud;
+
+        }
+
+        while (bedCount < Random.Range(2,4))
+        {
+            int place = Random.Range(0,array.Length);
+            if (array[place] != bed)
+            {
+                array[place] = bed;
+                ++bedCount;
+            }
+        }
+    }
+
+    void fixPath(int[] array)
+    {
+        for(int i=0; i<playfield[0].Length; ++i)
+        {
+            if(playfield[0][i].name == "Bed")
+            {
+                if(playfield[0].Length==3)
+                {
+                    if(array[i]!=bed && array[i+1]!=bed)
+                        array[i]=bed;
+                }
+                else
+                {
+                    switch(i)
+                    {
+                        case 1: 
+                        case 2: if(array[i-1]!=bed && array[i]!=bed)
+                                    array[i]=bed; break;
+                        case 0: if(array[i]!=bed)
+                                    array[i] = bed; break;
+                        case 3: if(array[i-1]!=bed)
+                                    array[i-1] = bed; break;
+                    }
+                }
+            }
+        }
+    }
+
+    void emptyRow5(bool[] row5takens)
+    {
+        Vector3 vect = new Vector3(extraCloudsStartingXCoord, extraItemsStartingYCoord, 0);
+        
+        for (int i = 0; i < playfield[5].Length; i++)
+        {
+            if (!row5takens[i] && playfield[5][i] != null)
+            {
+                if(playfield[5][i].name == "Cloud")
+                {
+                    vect.x = extraCloudsStartingXCoord;
+                    playfield[5][i].transform.position = vect;
+                    clouds.Add(playfield[5][i]);
+                }
+                else
+                {
+                    vect.x = extraBedsStartingXCoord;
+                    playfield[5][i].transform.position = vect;
+                    beds.Add(playfield[5][i]);
+                }
+
+                playfield[5][i].transform.parent = null;
+                playfield[5][i] = null;
+            }
+        }
+
+        playfield[5] = null;
+    }
+
+    void generatePath(int[] array, int length)
+    {
+        ArrayList pos = new ArrayList();
+        
+        for(int j = 0; j < playfield[0].Length; ++j)
+        {
+            if (playfield[0][j].name == "Bed" && pos.Count<=length)
+                pos.Add(j);
+        }
+
+        if (pos.Count == 0)
+            Debug.LogWarning("No bed. Oh noo");
+        else
+        {
+            if (pos.Count == 1)
+            {
+                for (int j = 0; j < playfield[0].Length; ++j)
+                {
+                    if (playfield[0][j].name == "Bed")
+                    {
+                        int num = 0;
+                        if (j < length - 1)
+                            num = j + Random.Range(0, 2);
+                        else
+                            num = length - 1;
+                        array[num] = bed;
+                    }
+                }
+            }
+            else
+            {
+                int Count = Random.Range(1, pos.Count+1);
+
+                for (int i = 0;i < Count; ++i) 
+                { 
+                    int place = Random.Range(0, pos.Count);
+                    if ((int)pos[place]<array.Length)
+                        array[(int)pos[place]] = bed;
+                    pos.RemoveAt(place);
+                }
+                
+            }
         }
     }
 
@@ -144,14 +306,12 @@ public class Game : MonoBehaviour
     {
         int length = (playfield[0].Length == 4) ? 3 : 4;
         float startingXCoord = (length==4) ? fourItemRowStartingXCoord : threeItemRowStartingXCoord;
-
         int[] array = new int[length];
         bool[] row5takens = new bool[playfield[4].Length];
-        for (int i = 0; i < length; i++)
-        {
-            array[i] = bed;
-            //array[i] = randomizer.Next(0,2);
-        }
+
+        generatePath(array, length);
+        fixPath(array);
+        randomizePatterns(array, length);
 
         playfield[5] = playfield[4];
         playfield[4] = playfield[3];
@@ -159,11 +319,7 @@ public class Game : MonoBehaviour
         playfield[2] = playfield[1];
         playfield[1] = playfield[0];
 
-        for (int i = 1; i < playfield[0].Length; i++)
-            playfield[0][i] = null;
-
         playfield[0] = new GameObject[length];
-
         Vector3 v = new Vector3(startingXCoord+shift_const, currendMaxHeigth,0);
 
         for(int i = 0;i < length;i++)
@@ -262,32 +418,7 @@ public class Game : MonoBehaviour
             v.x += coloumnDistance;
         }
 
-        Vector3 vect = new Vector3(extraCloudsStartingXCoord, extraItemsStartingYCoord, 0);
-
-        // Todo: this is not working in the long run
-        for (int i = 0; i < playfield[5].Length; i++)
-        {
-            if (!row5takens[i] && playfield[5][i] != null)
-            {
-                if(playfield[5][i].name == "Cloud")
-                {
-                    vect.x = extraCloudsStartingXCoord;
-                    playfield[5][i].transform.position = vect;
-                    clouds.Add(playfield[5][i]);
-                }
-                else
-                {
-                    vect.x = extraBedsStartingXCoord;
-                    playfield[5][i].transform.position = vect;
-                    beds.Add(playfield[5][i]);
-                }
-
-                playfield[5][i].transform.parent = null;
-                playfield[5][i] = null;
-            }
-        }
-
-        playfield[5] = null;
+        emptyRow5(row5takens);
     }
 
     void Move()
@@ -297,14 +428,11 @@ public class Game : MonoBehaviour
 
     public float getLeftColoumnPos(bool isLeft)
     {
-        float l = (playfield[0].Length == 4) ? 4 : 3;
+        float l = (playfield[4].Length == 4) ? 3 : 4;
         float X = (l == 3) ? threeItemRowStartingXCoord : fourItemRowStartingXCoord;
 
-        //Debug.LogWarning(l);
-
-        // Todo: Jumping from the right doesnt land at the perfect place
         if (isLeft)
-            X += 72;
+            X += shift_const+2;
         else
             X += coloumnDistance * (l - 1) + shift_const + 3;
 

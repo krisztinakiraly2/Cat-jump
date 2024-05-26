@@ -10,10 +10,11 @@ public class ControlGame : MonoBehaviour
 
     private void PauseAnimation()
     {
-        if (GameAnimator != null)
+        if (GameAnimator != null && !SceneChanger.doneBg)
         {
             isAnimationStopped = !isAnimationStopped;
             GameAnimator.enabled = !GameAnimator.enabled;
+            SceneChanger.doneBg = true;
         }
     }
 
@@ -55,7 +56,6 @@ public class ControlGame : MonoBehaviour
             float X = GameParent.transform.position.x;
             float Y = GameParent.transform.position.y;
             GameParent.transform.position = new Vector3(GameParent.transform.position.x, GameParent.transform.position.y - SceneChanger.sink_height, 0);
-            //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {GameParent.transform.position.x},y: {GameParent.transform.position.y}, Z: {GameParent.transform.position.z}");
         }
     }
 

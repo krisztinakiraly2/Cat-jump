@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Timers;
 using UnityEngine;
 
+public delegate void EndGame();
+
 public class ControllCat : MonoBehaviour
 {
     public Animator catAnimator;
@@ -16,13 +18,17 @@ public class ControllCat : MonoBehaviour
     bool hasNotCollided = true;
     float rightBorder = 1800;
     float leftBorder = 0;
+    public static bool MoveFieldDown = false;
+
+    public static event EndGame endGame;
 
     private void PauseAnimation()
     {
-        if (catAnimator != null)
+        if (catAnimator != null && !SceneChanger.doneCat)
         {
             isAnimationStopped = !isAnimationStopped;
             catAnimator.enabled = !catAnimator.enabled;
+            SceneChanger.doneCat = true;
         }
     }
 
@@ -45,6 +51,7 @@ public class ControllCat : MonoBehaviour
     private void Start()
     {
         Jump_Height = jump_height;
+        jump_height += 10;
         SceneChanger.restart += restart;
         restart();
         catAnimator.SetBool("Stay", true);
@@ -55,7 +62,6 @@ public class ControllCat : MonoBehaviour
     {
         catAnimator.SetBool("Left",false);
         catAnimator.SetBool("Right",false);
-        //Debug.Log("Down");
     }
 
     public void Jump(bool isLeft)
@@ -80,9 +86,6 @@ public class ControllCat : MonoBehaviour
             float Y = catParent.transform.position.y;
 
             float newX;
-            float newY;
-
-            //Debug.LogWarning($"After: {X + jump_lenght} border: {leftBorder}");
 
             if (X - jump_lenght > leftBorder)
             {
@@ -93,10 +96,10 @@ public class ControllCat : MonoBehaviour
                 newX = game.getLeftColoumnPos(false);
             }
 
-            newY = Y + jump_height - jump_height_shift;
-            catParent.transform.position = new Vector3(newX, newY, 0);
-            //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {catParent.transform.position.x},y: {catParent.transform.position.y}, Z: {catParent.transform.position.z}");
+            catParent.transform.position = new Vector3(newX, Y, 0);
             DrawPoints.increasePoints();
+
+            MoveFieldDown = true;
         }
     }
 
@@ -108,9 +111,7 @@ public class ControllCat : MonoBehaviour
             float Y = catParent.transform.position.y;
 
             float newX;
-            float newY;
 
-            //Debug.LogWarning($"After: {X + jump_lenght} border: {rightBorder}");
 
             if (X + jump_lenght < rightBorder)
             {
@@ -121,10 +122,10 @@ public class ControllCat : MonoBehaviour
                 newX = game.getLeftColoumnPos(true);
             }
 
-            newY = Y + jump_height - jump_height_shift;
-            catParent.transform.position = new Vector3(newX, newY, 0);
-            //Debug.LogWarning($"Before: X: {X}, Y: {Y}\n" + $"After: X: {catParent.transform.position.x},y: {catParent.transform.position.y}, Z: {catParent.transform.position.z}");
+            catParent.transform.position = new Vector3(newX, Y, 0);
             DrawPoints.increasePoints();
+
+            MoveFieldDown = true;
         }
     }
 
@@ -134,7 +135,6 @@ public class ControllCat : MonoBehaviour
         {
             catParent.transform.position = new Vector3(catParent.transform.position.x, catParent.transform.position.y - SceneChanger.sink_height, 0);
             Game.Height -= SceneChanger.sink_height;
-            //Debug.LogWarning($"X: {catParent.transform.position.x},y: {catParent.transform.position.y}, Z: {catParent.transform.position.z}\n");
         }
     }
     public void CollisionTrigger(Collision2D collision)
@@ -142,7 +142,7 @@ public class ControllCat : MonoBehaviour
         if (collision.gameObject.CompareTag("Bottom"))
         {
             SceneChanger.Stop();
-            //Debug.Log("Has reached the bottom");
+            endGame?.Invoke();
         }
 
         if(collision.gameObject.CompareTag("Cloud") && hasNotCollided)
@@ -150,7 +150,6 @@ public class ControllCat : MonoBehaviour
             catAnimator.SetBool("Fall", true);
             DrawPoints.decreasePoints();
             hasNotCollided = false;
-            //Debug.Log("Falling");
         }
     }
 

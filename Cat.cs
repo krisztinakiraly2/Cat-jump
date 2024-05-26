@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Cat : MonoBehaviour
@@ -20,7 +19,6 @@ public class Cat : MonoBehaviour
         boxCollider = rb.GetComponent<BoxCollider2D>();
         controllCat.enabled = true;
         controllCat.catAnimator.SetBool("Start", true);
-        prev = controllCat.catParent.transform.position; 
     }
 
     // Update is called once per frame
@@ -37,13 +35,6 @@ public class Cat : MonoBehaviour
 
         if (SceneChanger.menu)
             controllCat.catAnimator.SetBool("Start", false);
-
-        if (prev != controllCat.catParent.transform.position)
-        {
-            prev = controllCat.catParent.transform.position;
-            //Debug.Log(prev);
-        }
-
     }
 
     void MoveDown()

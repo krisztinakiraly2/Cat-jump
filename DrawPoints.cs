@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class DrawPoints : MonoBehaviour
@@ -31,7 +30,6 @@ public class DrawPoints : MonoBehaviour
         --points;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if(Score != null) Score.text = points.ToString();
